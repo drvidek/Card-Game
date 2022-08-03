@@ -218,6 +218,7 @@ GameObject:
   - component: {fileID: 761186312}
   - component: {fileID: 761186311}
   - component: {fileID: 761186313}
+  - component: {fileID: 761186314}
   m_Layer: 0
   m_Name: GameObject
   m_TagString: Untagged
@@ -267,7 +268,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 761186310}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -6.95, y: -0.7, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -286,5 +287,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb5d841ee7780b34d891d59c6c0bf9f7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  color: {r: 0.64948535, g: 0.55328864, b: 0.42429405, a: 1}
+  color: {r: 1, g: 1, b: 1, a: 1}
   defaultColor: {r: 1, g: 1, b: 1, a: 1}
+--- !u!114 &761186314
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 761186310}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d425487f1c3395489823929584c55b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mapImage: {fileID: 2800000, guid: 89a49218ff3899648b6371475ef2be88, type: 3}
+  mappedElement:
+  - spawnObj: {fileID: 2486265095783177650, guid: 8daab258e0dc8b04492f91a8f94bbc18, type: 3}
+    spawnColour: {r: 1, g: 0, b: 0, a: 1}
+  - spawnObj: {fileID: 2486265095783177650, guid: 3cc0f3d0f35dfdf42be15b0959cc86cc, type: 3}
+    spawnColour: {r: 0, g: 0, b: 0, a: 1}
+  - spawnObj: {fileID: 2486265095783177650, guid: 657a0d3e28e812e4cbb76f5aff63056a, type: 3}
+    spawnColour: {r: 1, g: 1, b: 1, a: 1}
