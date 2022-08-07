@@ -5,73 +5,108 @@ using UnityEditor;
 
 public class CreateFromPixelMap : EditorWindow
 {
+    static EditorWindow ThisWindow;
+
     [MenuItem("Rubber Duck/Tool Windows/Create From Pixel Map")]
     public static void ShowWindow()
     {
-        GetWindow(typeof(CreateFromPixelMap));
+        ThisWindow = GetWindow(typeof(CreateFromPixelMap));
     }
 
+
+    ScriptableObject target;
+    SerializedObject thisSerialised;
+
     public Texture2D mapImage;
+
+    [System.Serializable]
+    public struct Mappings
+    {
+        public GameObject spawnObject;
+        public Color spawnColour;
+    }
+    public Mappings[] objectLegend;
+
     private Color currentPixelColour;
-    public List<Color> tempColorList = new List<Color>();
-    public GameObject[] spawnObj;
-    public Color[] foundColours;
+    public List<Color> tempColourList = new List<Color>();
     public GameObject parentObject;
     bool _useParentPosition;
     bool _zAxis;
     bool _pivotAtCentre;
-    List<GameObject> _spawnedObjects = new List<GameObject>();
+    bool _lockLegend;
+
+    private void OnEnable()
+    {
+        target = this;
+        thisSerialised = new SerializedObject(target);
+    }
 
     private void OnGUI()
     {
+
         GUILayout.Label("Create a level from a pixel map");
 
         EditorGUI.BeginChangeCheck();
-        mapImage = EditorGUILayout.ObjectField("Map", mapImage, typeof(Texture2D), false) as Texture2D;
+        mapImage = EditorGUILayout.ObjectField(new GUIContent("Map", "Select the pixel map to use as a base."), mapImage, typeof(Texture2D), false) as Texture2D;
         if (EditorGUI.EndChangeCheck())
         {
             if (mapImage != null)
-                ScanForColours();
+            {
+                if (!_lockLegend)
+                {
+                    ScanForColours();
+                }
+            }
+            else
+            {
+                objectLegend = new Mappings[0];
+                _lockLegend = false;
+            }
+            thisSerialised = new SerializedObject(target);
         }
 
-        if (mapImage != null && foundColours.Length > 0)
+        SerializedProperty mappingsProperty = thisSerialised.FindProperty("objectLegend");
+
+        #region If there is a map in use
+
+        EditorGUI.BeginDisabledGroup(mapImage == null);
+
+        EditorGUILayout.PropertyField(mappingsProperty, true);
+
+        _lockLegend = EditorGUILayout.Toggle(new GUIContent("Lock Legend Entries", "Prevents the legend from being reset between different maps when ticked. Useful if you have many maps with identical colours/keys."), _lockLegend);
+
+        GUILayout.Space(16);
+
+        parentObject = EditorGUILayout.ObjectField("Parent Object", parentObject, typeof(GameObject), true) as GameObject;
+        if (parentObject != null && !parentObject.scene.IsValid())
         {
-            for (int i = 0; i < foundColours.Length; i++)
-            {
-                GUI.backgroundColor = foundColours[i];
-                spawnObj[i] = EditorGUILayout.ObjectField("Object for colour", spawnObj[i], typeof(GameObject), false) as GameObject;
-            }
-            GUI.backgroundColor = Color.white;
-
-            GUILayout.Space(16);
-
-            parentObject = EditorGUILayout.ObjectField("Parent Object", parentObject, typeof(GameObject), true) as GameObject;
-            if (parentObject != null && !parentObject.scene.IsValid())
-            {
-                Debug.LogError("ERROR: Parent must be present in the scene");
-                parentObject = null;
-            }
-
-            EditorGUI.BeginDisabledGroup(parentObject == null);
-            _useParentPosition = EditorGUILayout.Toggle("Use Parent Position", _useParentPosition);
-            if (parentObject == null)
-            {
-                _useParentPosition = false;
-            }
-            EditorGUI.EndDisabledGroup();
-
-            _zAxis = EditorGUILayout.Toggle("Use Z-Axis", _zAxis);
-
-            _pivotAtCentre = EditorGUILayout.Toggle(new GUIContent("Pivot At Centre", "Tick to change pivot point from bottom-left to centre"), _pivotAtCentre);
-
-            //Spawn button
-            //create a button and check if it is pressed
-            if (GUILayout.Button("Generate"))
-            {
-                //run the SpawnObject method
-                GenerateLevel();
-            }
+            Debug.LogError("ERROR: Parent must be present in the scene");
+            parentObject = null;
         }
+
+        #region If there is a parent object
+
+        EditorGUI.BeginDisabledGroup(parentObject == null);
+        _useParentPosition = EditorGUILayout.Toggle(new GUIContent("Use Parent Position", "Determine whether to use global or local position based on the parent object's transform."), _useParentPosition);
+        if (parentObject == null)
+        {
+            _useParentPosition = false;
+        }
+        EditorGUI.EndDisabledGroup();
+        #endregion
+
+        _zAxis = EditorGUILayout.Toggle(new GUIContent("Use Z-Axis", "Places objects along the Z axis instead of the Y axis when ticked."), _zAxis);
+
+        _pivotAtCentre = EditorGUILayout.Toggle(new GUIContent("Pivot At Centre", "Changes pivot point from bottom-left to centre when ticked."), _pivotAtCentre);
+
+        if (GUILayout.Button("Generate"))
+        {
+            GenerateLevel();
+        }
+        EditorGUI.EndDisabledGroup();
+        #endregion
+
+        thisSerialised.ApplyModifiedProperties();
     }
 
     void GenerateObject(int x, int y)
@@ -85,10 +120,9 @@ public class CreateFromPixelMap : EditorWindow
             return;
         }
 
-        for (int i = 0; i < foundColours.Length; i++)
+        foreach (Mappings map in objectLegend)
         {
-            Debug.Log("Checking match: " + currentPixelColour.ToString() + " against " + foundColours[i].ToString());
-            if (foundColours[i] == currentPixelColour && spawnObj[i] != null)
+            if (map.spawnColour == currentPixelColour && map.spawnObject != null)
             {
                 Debug.Log("Colour Match Found");
                 Vector3 pos = new Vector3(
@@ -97,7 +131,7 @@ public class CreateFromPixelMap : EditorWindow
                     _zAxis ? y - (_pivotAtCentre ? mapImage.height / 2f : 0) : 0) //set Z based on whether we use the Z axis, and if so, adjust if pivoting from centre
                     + (_useParentPosition ? parentObject.transform.position : Vector3.zero); //add the parent's transform position to the final result to account for their location
 
-                GameObject obj = Instantiate(spawnObj[i], pos, Quaternion.identity, parentObject != null ? parentObject.transform : null);
+                GameObject obj = Instantiate(map.spawnObject, pos, Quaternion.identity, parentObject != null ? parentObject.transform : null);
             }
         }
     }
@@ -116,7 +150,17 @@ public class CreateFromPixelMap : EditorWindow
 
     void ScanForColours()
     {
-        tempColorList.Clear();
+        tempColourList.Clear();
+        //tempObjectList.Clear();
+
+        //if (objectLegend != null)
+        //{
+        //    foreach (Mappings map in objectLegend)
+        //    {
+        //        tempObjectList.Add(map.spawnObject);
+        //    }
+        //}
+
         //scan whole texture and get pixel positions
         for (int x = 0; x < mapImage.width; x++)
         {
@@ -125,9 +169,17 @@ public class CreateFromPixelMap : EditorWindow
                 SetColourFromPixel(x, y);
             }
         }
-        foundColours = new Color[tempColorList.Count];
-        foundColours = tempColorList.ToArray();
-        spawnObj = new GameObject[foundColours.Length];
+
+        objectLegend = new Mappings[tempColourList.Count];
+
+        for (int i = 0; i < tempColourList.Count; i++)
+        {
+            objectLegend[i].spawnColour = tempColourList[i];
+            //if (i <tempObjectList.Count)
+            //{
+            //    objectLegend[i].spawnObject = tempObjectList[i];
+            //}
+        }
     }
 
     void SetColourFromPixel(int x, int y)
@@ -140,11 +192,11 @@ public class CreateFromPixelMap : EditorWindow
             Debug.Log("Skipped empty pixel");
             return;
         }
-        if (!tempColorList.Contains(currentPixelColour))
+        if (!tempColourList.Contains(currentPixelColour))
         {
-            tempColorList.Add(currentPixelColour);
+            Debug.Log("Added a color");
+
+            tempColourList.Add(currentPixelColour);
         }
     }
-
-
 }
