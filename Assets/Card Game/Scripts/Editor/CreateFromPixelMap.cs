@@ -151,15 +151,6 @@ public class CreateFromPixelMap : EditorWindow
     void ScanForColours()
     {
         tempColourList.Clear();
-        //tempObjectList.Clear();
-
-        //if (objectLegend != null)
-        //{
-        //    foreach (Mappings map in objectLegend)
-        //    {
-        //        tempObjectList.Add(map.spawnObject);
-        //    }
-        //}
 
         //scan whole texture and get pixel positions
         for (int x = 0; x < mapImage.width; x++)
@@ -175,10 +166,6 @@ public class CreateFromPixelMap : EditorWindow
         for (int i = 0; i < tempColourList.Count; i++)
         {
             objectLegend[i].spawnColour = tempColourList[i];
-            //if (i <tempObjectList.Count)
-            //{
-            //    objectLegend[i].spawnObject = tempObjectList[i];
-            //}
         }
     }
 
