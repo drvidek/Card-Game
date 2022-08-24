@@ -191,8 +191,6 @@ public class Joystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
         _handle.anchoredPosition = Vector2.zero;
     }
     #endregion
-
-
 }
 
 public enum AxisOptions
