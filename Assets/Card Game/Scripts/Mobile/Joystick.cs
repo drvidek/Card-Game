@@ -18,7 +18,7 @@ public class Joystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
     #region References
     private RectTransform _baseRect = null;
     private Canvas _canvas;
-    [SerializeField] private Camera _cam;
+    [SerializeField] protected Camera _cam;
     public Vector2 input = Vector2.zero;
     #endregion
     #region Properties
@@ -162,7 +162,7 @@ public class Joystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
         return Vector2.zero;
     }
 
-    public void OnDrag(PointerEventData eventData)
+    public virtual void OnDrag(PointerEventData eventData)
     {
         if (_cam == null)
         {
@@ -180,12 +180,12 @@ public class Joystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
         //if this plays up we will be changing HandleRange to _handleRange;
     }
 
-    public void OnPointerDown(PointerEventData eventData)
+    public virtual void OnPointerDown(PointerEventData eventData)
     {
         OnDrag(eventData);
     }
 
-    public void OnPointerUp(PointerEventData eventData)
+    public virtual void OnPointerUp(PointerEventData eventData)
     {
         input = Vector2.zero;
         _handle.anchoredPosition = Vector2.zero;
