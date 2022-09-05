@@ -6,7 +6,6 @@ public class PinchAndZoom : MonoBehaviour
 {
     public float perspectiveZoomSpd = .5f;
     public float orthoZoomSpd = .5f;
-    private float _lastTouchDist;
 
     private Camera _cam;
 
